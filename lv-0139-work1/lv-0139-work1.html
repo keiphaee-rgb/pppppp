@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>野相图鉴 · 地球生灵索引</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%231e2a24'/%3E%3Cpath d='M9 22l3-9 4 5 3-7 4 11z' fill='%23e8b04b'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root{
+  --ink:#1e2a24;
+  --ink-soft:#3d4f46;
+  --bg:#f4f0e6;
+  --paper:#fffdf6;
+  --line:#ded6c2;
+  --accent:#e8b04b;
+  --accent-deep:#b9852e;
+  --leaf:#4c7a4f;
+  --leaf-deep:#2f4a33;
+  --ocean:#2f6f8f;
+  --snow:#9db9c6;
+  --shadow:0 18px 40px rgba(30,42,36,.10);
+  --radius:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Noto Sans SC',system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.serif{font-family:'Noto Serif SC',serif}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+
+/* ===== 顶部导航 ===== */
+nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(244,240,230,.85);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:66px}
+.brand{display:flex;align-items:center;gap:11px;font-family:'Noto Serif SC',serif;font-weight:900;font-size:20px;letter-spacing:.5px}
+.brand .mark{width:34px;height:34px;border-radius:9px;background:var(--ink);display:grid;place-items:center}
+.brand .mark svg{width:20px;height:20px}
+.brand small{font-family:'Noto Sans SC';font-weight:500;font-size:11px;color:var(--ink-soft);letter-spacing:.12em}
+.nav-links{display:flex;gap:30px;font-size:14.5px;font-weight:500;color:var(--ink-soft)}
+.nav-links a{position:relative;transition:color .2s}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:-5px;width:0;height:2px;background:var(--accent);transition:width .25s}
+.nav-links a:hover::after{width:100%}
+.menu-btn{display:none;background:none;border:0;cursor:pointer;color:var(--ink)}
+
+/* ===== Hero ===== */
+.hero{background:var(--ink);color:#f4f0e6;overflow:hidden;position:relative}
+.hero::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(1200px 500px at 85% -10%,rgba(232,176,75,.16),transparent 60%),
+  radial-gradient(800px 400px at 0% 110%,rgba(76,122,79,.25),transparent 60%);}
+.hero-inner{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:92px 0 104px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:13px;letter-spacing:.22em;color:var(--accent);font-weight:500;text-transform:uppercase}
+.eyebrow::before{content:"";width:34px;height:1.5px;background:var(--accent)}
+.hero h1{font-size:clamp(40px,6vw,72px);line-height:1.08;font-weight:900;margin:26px 0 22px;letter-spacing:.01em}
+.hero h1 .hl{color:var(--accent)}
+.hero p.lead{font-size:17.5px;color:#cfd8d0;max-width:520px;font-weight:300;line-height:1.9}
+.hero-cta{display:flex;gap:16px;margin-top:36px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:13px 24px;border-radius:999px;font-weight:600;font-size:15px;transition:transform .18s,box-shadow .18s;cursor:pointer;border:1px solid transparent}
+.btn:hover{transform:translateY(-2px)}
+.btn.primary{background:var(--accent);color:var(--ink);box-shadow:0 10px 26px rgba(232,176,75,.35)}
+.btn.ghost{border-color:#52665b;color:#e8eeea}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.hero-photo{position:relative}
+.hero-photo .frame{border-radius:var(--radius);overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.4);aspect-ratio:4/5}
+.hero-photo img{width:100%;height:100%;object-fit:cover;filter:saturate(1.05)}
+.tag-float{position:absolute;background:var(--paper);color:var(--ink);border-radius:14px;padding:13px 18px;box-shadow:var(--shadow);font-size:13.5px}
+.tag-float b{display:block;font-family:'Noto Serif SC';font-size:17px;font-weight:900}
+.tag-float small{color:var(--ink-soft)}
+.tag-float.t1{top:22px;left:-28px;transform:rotate(-3deg)}
+.tag-float.t2{bottom:30px;right:-22px;transform:rotate(2deg)}
+
+/* ===== 数据带 ===== */
+.stats-band{background:var(--paper);border-top:1px solid var(--line)}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.stat{padding:38px 26px;border-right:1px solid var(--line);text-align:center}
+.stat:last-child{border-right:0}
+.stat .num{font-family:'Noto Serif SC';font-weight:900;font-size:clamp(30px,3.4vw,44px);color:var(--leaf-deep)}
+.stat .num span{color:var(--accent-deep)}
+.stat .lbl{font-size:13.5px;color:var(--ink-soft);margin-top:4px;letter-spacing:.05em}
+
+/* ===== 图鉴 ===== */
+.gallery{padding:104px 0 40px}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin-bottom:44px;flex-wrap:wrap}
+.sec-head .kicker{font-size:13px;letter-spacing:.24em;color:var(--accent-deep);font-weight:700}
+.sec-head h2{font-size:clamp(30px,4vw,46px);font-weight:900;margin-top:10px;line-height:1.15}
+.sec-head .sub{color:var(--ink-soft);max-width:460px;font-size:15px;margin-top:12px}
+.filters{display:flex;gap:10px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);border-radius:999px;padding:9px 18px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.chip:hover{border-color:var(--leaf);color:var(--leaf)}
+.chip.on{background:var(--leaf);color:#fff;border-color:var(--leaf)}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.card{background:var(--paper);border-radius:var(--radius);overflow:hidden;box-shadow:0 4px 14px rgba(30,42,36,.06);border:1px solid var(--line);display:flex;flex-direction:column;transition:transform .22s,box-shadow .22s}
+.card:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+.card .ph{aspect-ratio:4/3;overflow:hidden;position:relative;cursor:pointer}
+.card .ph img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.card:hover .ph img{transform:scale(1.06)}
+.card .cat{position:absolute;top:12px;left:12px;background:rgba(30,42,36,.72);color:#f4f0e6;font-size:11.5px;letter-spacing:.1em;padding:5px 12px;border-radius:999px;backdrop-filter:blur(4px)}
+.card .body{padding:18px 20px 20px;display:flex;flex-direction:column;flex:1}
+.card .latin{font-size:12px;font-style:italic;color:var(--accent-deep);letter-spacing:.06em}
+.card h3{font-family:'Noto Serif SC';font-size:22px;font-weight:900;margin:4px 0 10px}
+.card .fact{font-size:13.5px;color:var(--ink-soft);flex:1;line-height:1.75}
+.card .meta{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:13px;border-top:1px dashed var(--line)}
+.card .meta .tag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--leaf-deep);font-weight:600}
+.card .meta .more{background:none;border:0;color:var(--ink-soft);font-size:13px;font-weight:600;cursor:pointer;transition:color .2s}
+.card .meta .more:hover{color:var(--accent-deep)}
+
+/* ===== 栖息地 ===== */
+.habitat{background:var(--leaf-deep);color:#f0f4ee;padding:104px 0}
+.habitat .sec-head h2{color:#fff}
+.habitat .sec-head .sub{color:#c5d2c9}
+.hab-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
+.hab{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:var(--radius);padding:26px 22px;transition:background .25s,transform .25s}
+.hab:hover{background:rgba(255,255,255,.11);transform:translateY(-4px)}
+.hab .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin-bottom:16px}
+.hab .ico svg{width:24px;height:24px}
+.hab h3{font-family:'Noto Serif SC';font-size:20px;font-weight:700;margin-bottom:8px}
+.hab p{font-size:13.5px;color:#c5d2c9;line-height:1.8}
+.hab .cnt{margin-top:16px;font-size:12px;letter-spacing:.08em;color:var(--accent);font-weight:700}
+
+/* ===== 数据可视化 ===== */
+.chart-sec{padding:104px 0}
+.chart-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center}
+.chart-box{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+#speciesChart{width:100%;height:360px}
+.chart-side h3{font-size:clamp(24px,3vw,34px);font-weight:900;line-height:1.25;margin:14px 0 16px}
+.chart-side p{color:var(--ink-soft);font-size:15px;line-height:1.9}
+.chart-side .note{margin-top:18px;font-size:12.5px;color:var(--ink-soft);border-left:3px solid var(--accent);padding-left:14px;font-style:italic}
+
+/* ===== CTA ===== */
+.cta{background:var(--ink);color:#f4f0e6;padding:84px 0;text-align:center;position:relative;overflow:hidden}
+.cta::before{content:"";position:absolute;inset:0;background:radial-gradient(900px 300px at 50% -20%,rgba(232,176,75,.18),transparent 60%)}
+.cta-inner{position:relative}
+.cta h2{font-size:clamp(28px,4vw,44px);font-weight:900;max-width:640px;margin:0 auto 16px;line-height:1.25}
+.cta p{color:#cfd8d0;max-width:540px;margin:0 auto 30px;font-size:15.5px;font-weight:300}
+
+/* ===== Footer ===== */
+footer{background:#182019;color:#b9c5bc;padding:46px 0 40px}
+.foot-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+footer .brand{color:#e8eeea}
+.foot-note{font-size:13px;color:#7f8f84}
+
+/* ===== 弹窗 ===== */
+.modal{position:fixed;inset:0;background:rgba(24,32,25,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal.open{display:flex}
+.modal-card{background:var(--paper);border-radius:20px;max-width:620px;width:100%;max-height:88vh;overflow:auto;position:relative;box-shadow:var(--shadow)}
+.modal-card .m-ph{aspect-ratio:16/9;overflow:hidden}
+.modal-card .m-ph img{width:100%;height:100%;object-fit:cover}
+.modal-close{position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;background:rgba(24,32,25,.7);color:#fff;border:0;font-size:20px;cursor:pointer;display:grid;place-items:center}
+.m-body{padding:26px 28px 30px}
+.m-body .latin{font-size:13px;font-style:italic;color:var(--accent-deep)}
+.m-body h3{font-family:'Noto Serif SC';font-size:28px;font-weight:900;margin:6px 0 14px}
+.m-body p{color:var(--ink-soft);font-size:14.5px;line-height:1.9}
+.m-facts{margin-top:20px;display:grid;gap:10px}
+.m-facts .row{display:flex;gap:12px;align-items:flex-start;background:#f6f1e5;border-radius:12px;padding:12px 16px;font-size:13.5px}
+.m-facts .row b{flex-shrink:0;color:var(--leaf-deep);font-weight:700;min-width:52px}
+.m-facts .row span{color:var(--ink-soft)}
+
+/* ===== 响应式 ===== */
+@media(max-width:1020px){
+  .hero-inner{grid-template-columns:1fr;gap:44px;padding:64px 0 76px}
+  .hero-photo{max-width:520px;margin:0 auto}
+  .tag-float.t1{left:6px}.tag-float.t2{right:6px}
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .hab-grid{grid-template-columns:repeat(3,1fr)}
+  .chart-grid{grid-template-columns:1fr;gap:36px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .stat:nth-child(2){border-right:0}
+  .stat:nth-child(-n+2){border-bottom:1px solid var(--line)}
+}
+@media(max-width:640px){
+  .nav-links{display:none}
+  .menu-btn{display:block}
+  .nav-links.open{display:flex;flex-direction:column;position:absolute;top:66px;left:0;right:0;background:var(--paper);border-bottom:1px solid var(--line);padding:16px 24px;gap:16px}
+  .cards{grid-template-columns:1fr}
+  .hab-grid{grid-template-columns:1fr}
+  .sec-head{flex-direction:column;align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+  *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 导航 ===== -->
+<nav>
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">
+      <span class="mark"><svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" fill="#e8b04b"/><path d="M9 22l3-9 4 5 3-7 4 11z" fill="#1e2a24"/></svg></span>
+      <span>野相图鉴<small>WILD INDEX</small></span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="#gallery">动物图鉴</a>
+      <a href="#habitat">栖息地</a>
+      <a href="#data">物种分布</a>
+      <a href="#care">一起守护</a>
+    </div>
+    <button class="menu-btn" id="menuBtn" aria-label="菜单"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  </div>
+</nav>
+
+<!-- ===== Hero ===== -->
+<header class="hero" id="top">
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <span class="eyebrow">The Wild Index</span>
+      <h1 class="serif">遇见地球上的<br><span class="hl">生灵与野性</span></h1>
+      <p class="lead">从炙热的草原到幽蓝的深海，从苍茫的极地到层叠的雨林——八种生灵，八段故事。翻开源野图鉴，认识与我们共享这颗星球的邻居。</p>
+      <div class="hero-cta">
+        <a class="btn primary" href="#gallery">翻阅图鉴</a>
+        <a class="btn ghost" href="#care">了解守护计划</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <div class="frame"><img src="assets/lion.jpg" alt="非洲草原上的雄狮"></div>
+      <div class="tag-float t1"><b>Panthera leo</b><small>非洲狮 · 草原之王</small></div>
+      <div class="tag-float t2"><b>≈1,000,000+</b><small>已知昆虫物种</small></div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 数据带 ===== -->
+<section class="stats-band">
+  <div class="wrap">
+    <div class="stats-grid">
+      <div class="stat"><div class="num">150<span>万+</span></div><div class="lbl">已描述的物种</div></div>
+      <div class="stat"><div class="num">4</div><div class="lbl">本页栖息地场景</div></div>
+      <div class="stat"><div class="num">8</div><div class="lbl">本期收录生灵</div></div>
+      <div class="stat"><div class="num">4.2<span>万+</span></div><div class="lbl">受威胁物种（估）</div></div>
+    </div>
+  </div>
+</section>
+<!-- ===== 动物图鉴 ===== -->
+<section class="gallery" id="gallery">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="kicker">SPECIES CARDS · 01</div>
+        <h2 class="serif">本期八种生灵</h2>
+        <p class="sub">点按卡片可展开每位生灵的档案，用栖息地标签筛选你想了解的场景。</p>
+      </div>
+      <div class="filters" id="filters">
+        <button class="chip on" data-hab="全部">全部</button>
+        <button class="chip" data-hab="草原">草原</button>
+        <button class="chip" data-hab="山林">山林</button>
+        <button class="chip" data-hab="丛林">丛林</button>
+        <button class="chip" data-hab="极地">极地</button>
+        <button class="chip" data-hab="海洋">海洋</button>
+      </div>
+    </div>
+    <div class="cards" id="cards">
+      <article class="card" data-hab="草原">
+        <div class="ph" data-id="lion"><img src="assets/lion.jpg" alt="非洲狮"><span class="cat">草原</span></div>
+        <div class="body"><div class="latin">Panthera leo</div><h3>非洲狮</h3>
+          <p class="fact">狮是唯一群居的大型猫科动物，狮群由多只母狮与少量雄狮组成，狩猎大多由母狮完成。</p>
+          <div class="meta"><span class="tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>草原栖息</span><button class="more" data-id="lion">查看档案</button></div>
+        </div>
+      </article>
+      <article class="card" data-hab="山林">
+        <div class="ph" data-id="panda"><img src="assets/panda.jpg" alt="大熊猫"><span class="cat">山林</span></div>
+        <div class="body"><div class="latin">Ailuropoda melanoleuca</div><h3>大熊猫</h3>
+          <p class="fact">大熊猫虽然以竹子为食，分类上却属于食肉目，与熊的亲缘关系更近。</p>
+          <div class="meta"><span class="tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>山林栖息</span><button class="more" data-id="panda">查看档案</button></div>
+        </div>
+      </article>
+      <article class="card" data-hab="极地">
+        <div class="ph" data-id="polar"><img src="assets/polar.jpg" alt="北极熊"><span class="cat">极地</span></div>
+        <div class="body"><div class="latin">Ursus maritimus</div><h3>北极熊</h3>
+          <p class="fact">北极熊是世界上最大的陆地食肉动物，它的毛发其实是中空透明的，看起来白是因为反射光线。</p>
+          <div class="meta"><span class="tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>极地栖息</span><button class="more" data-id="polar">查看档案</button></div>
+        </div>
+      </article>
+      <article class="card" data-hab="丛林">
+        <div class="ph" data-id="parrot"><img src="assets/parrot.jpg" alt="彩虹吸蜜鹦鹉"><span class="cat">丛林</span></div>
+        <div class="body"><div class="latin">Trichoglossus moluccanus</div><h3>彩虹吸蜜鹦鹉</h3>
+          <p class="fact">羽毛覆盖蓝、绿、黄、橙、红多种色彩，是雨林中最明亮的色彩之一。</p>
+          <div class="meta"><span class="tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>丛林栖息</span><button class="more" data-id="parrot">查看档案</button></div>
+        </div>
+      </article>
+      <article class="card" data-hab="草原">
+        <div class="ph" data-id="elephant"><img src="assets/elephant.jpg" alt="非洲象"><span class="cat">草原</span></div>
+        <div class="body"><div class="latin">Loxodonta africana</div><h3>非洲象</h3>
+          <p class="fact">非洲象是现存最大的陆生动物，成年个体体重可达 6 吨以上。</p>
+          <div class="meta"><span class="tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>草原栖息</span><button class="more" data-id="elephant">查看档案</button></div>
+        </div>
+      </article>
+      <article class="card" data-hab="山林">
+        <div class="ph" data-id="fox"><img src="assets/fox.jpg" alt="赤狐"><span class="cat">山林</span></div>
+        <div class="body"><div class="latin">Vulpes vulpes</div><h3>赤狐</h3>
+          <p class="fact">赤狐是分布最广的食肉动物之一，几乎遍布北半球的森林、草原与山地。</p>
+          <div class="meta"><span class="tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>山林栖息</span><button class="more" data-id="fox">查看档案</button></div>
+        </div>
+      </article>
+      <article class="card" data-hab="极地">
+        <div class="ph" data-id="owl"><img src="assets/owl.jpg" alt="雪鸮"><span class="cat">极地</span></div>
+        <div class="body"><div class="latin">Bubo scandiacus</div><h3>雪鸮</h3>
+          <p class="fact">雪鸮是为数不多白天活动的猫头鹰，也是《哈利·波特》中海德薇的原型。</p>
+          <div class="meta"><span class="tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>极地栖息</span><button class="more" data-id="owl">查看档案</button></div>
+        </div>
+      </article>
+      <article class="card" data-hab="海洋">
+        <div class="ph" data-id="dolphin"><img src="assets/dolphin.jpg" alt="宽吻海豚"><span class="cat">海洋</span></div>
+        <div class="body"><div class="latin">Tursiops truncatus</div><h3>宽吻海豚</h3>
+          <p class="fact">海豚通过回声定位在海洋中导航与捕食，大脑发达，被认为是最聪明的动物之一。</p>
+          <div class="meta"><span class="tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>海洋栖息</span><button class="more" data-id="dolphin">查看档案</button></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 栖息地 ===== -->
+<section class="habitat" id="habitat">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="kicker">HABITATS · 02</div>
+        <h2 class="serif">四大野生场景</h2>
+        <p class="sub">不同的土地，孕育不同的生存智慧。每种栖息地都是地球写给生命的一张名片。</p>
+      </div>
+    </div>
+    <div class="hab-grid" id="habGrid"></div>
+  </div>
+</section>
+
+<!-- ===== 物种分布 ===== -->
+<section class="chart-sec" id="data">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="kicker">DISTRIBUTION · 03</div>
+        <h2 class="serif">已知物种的构成</h2>
+        <p class="sub">人类目前记载的物种以百万计，而昆虫占据其中绝大多数。</p>
+      </div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-box"><div id="speciesChart"></div></div>
+      <div class="chart-side">
+        <div class="kicker" style="color:var(--accent-deep);font-size:13px;letter-spacing:.24em;font-weight:700">BIO DIVERSITY</div>
+        <h3 class="serif">生物多样性的量级</h3>
+        <p>目前已描述的物种约有 150 万种，但科学家估算地球真实的物种总量可达 800 万种以上——我们只认识了其中的一小部分，仍有大量生灵等待被命名与保护。</p>
+        <p class="note">左侧数据为基于学界公开估算的整理示意，用于呈现各门类的相对量级，非精确普查结果。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta" id="care">
+  <div class="wrap cta-inner">
+    <h2 class="serif">野性仍在消失，守护需要行动</h2>
+    <p>栖息地破碎、气候变化与盗猎正让越来越多的生灵走向濒危。了解它们，是保护的第一步。</p>
+    <a class="btn primary" href="#gallery">再认识一种生灵</a>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="wrap foot-inner">
+    <a class="brand" href="#top">
+      <span class="mark"><svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" fill="#e8b04b"/><path d="M9 22l3-9 4 5 3-7 4 11z" fill="#1e2a24"/></svg></span>
+      <span>野相图鉴</span>
+    </a>
+    <p class="foot-note">一座献给地球生灵的线上图鉴 · 数据为科普示意</p>
+  </div>
+</footer>
+
+<!-- ===== 弹窗 ===== -->
+<div class="modal" id="modal">
+  <div class="modal-card">
+    <button class="modal-close" id="modalClose" aria-label="关闭">×</button>
+    <div class="m-ph"><img id="mImg" src="" alt=""></div>
+    <div class="m-body">
+      <div class="latin" id="mLatin"></div>
+      <h3 class="serif" id="mName"></h3>
+      <p id="mDesc"></p>
+      <div class="m-facts" id="mFacts"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 数据 ===== */
+const ANIMALS = [
+  {id:'lion', name:'非洲狮', latin:'Panthera leo', hab:'草原',
+   fact:'狮是唯一群居的大型猫科动物，狮群由多只母狮与少量雄狮组成，狩猎大多由母狮完成。',
+   desc:'雄狮以浓密的鬃毛闻名，既是身份的象征，也在搏斗中起到保护脖颈的作用。狮群以母系血缘为纽带，幼狮在群体的呵护下成长。',
+   facts:[['食性','肉食动物，常捕食斑马、角马、水牛等大型有蹄类'],['习性','群居，狮群规模通常为 5–30 只'],['保护等级','IUCN 易危（VU）']]},
+  {id:'panda', name:'大熊猫', latin:'Ailuropoda melanoleuca', hab:'山林',
+   fact:'大熊猫虽然以竹子为食，分类上却属于食肉目，与熊的亲缘关系更近。',
+   desc:'每天要花 10 到 16 个小时进食竹子，却因消化效率低而需要大量进食。它们黑白相间的毛色，在雪地竹林中既是伪装，也便于同伴辨认。',
+   facts:[['食性','以竹为主食，偶食小型动物'],['习性','独居，晨昏活动'],['保护等级','IUCN 易危（VU）· 中国国宝']]},
+  {id:'polar', name:'北极熊', latin:'Ursus maritimus', hab:'极地',
+   fact:'北极熊是世界上最大的陆地食肉动物，它的毛发其实是中空透明的，看起来白是因为反射光线。',
+   desc:'主要在海冰上捕食海豹，是北极食物链的顶端。随着海冰消退，它们正面临栖息地缩小的严峻挑战。',
+   facts:[['食性','以海豹等海洋哺乳动物为主'],['习性','独居，善于长距离游泳'],['保护等级','IUCN 易危（VU）']]},
+  {id:'parrot', name:'彩虹吸蜜鹦鹉', latin:'Trichoglossus moluccanus', hab:'丛林',
+   fact:'羽毛覆盖蓝、绿、黄、橙、红多种色彩，是雨林中最明亮的色彩之一。',
+   desc:'以花蜜和花粉为主食，舌头上布满了细小的刷状乳头，能灵巧地采食。它们智力高、善于模仿，是极具魅力的丛林居民。',
+   facts:[['食性','花蜜、花粉、果实'],['习性','群居，发出响亮叫声'],['保护等级','IUCN 无危（LC）']]},
+  {id:'elephant', name:'非洲象', latin:'Loxodonta africana', hab:'草原',
+   fact:'非洲象是现存最大的陆生动物，成年个体体重可达 6 吨以上。',
+   desc:'象鼻没有骨骼，由数万块肌肉组成，既能卷起巨木，也能拾起微小果实。象群由母象带领，记忆与情感都极为丰富。',
+   facts:[['食性','草、树叶、树皮、果实'],['习性','母系群体，高度社会性'],['保护等级','IUCN 濒危（EN）']]},
+  {id:'fox', name:'赤狐', latin:'Vulpes vulpes', hab:'山林',
+   fact:'赤狐是分布最广的食肉动物之一，几乎遍布北半球的森林、草原与山地。',
+   desc:'蓬松的大尾巴既可保暖，也能在奔跑时帮助平衡。它们机警敏捷，善于适应环境，是山林与城市边缘的常客。',
+   facts:[['食性','杂食，鼠类、鸟类、果实'],['习性','晨昏与夜间活动，独居'],['保护等级','IUCN 无危（LC）']]},
+  {id:'owl', name:'雪鸮', latin:'Bubo scandiacus', hab:'极地',
+   fact:'雪鸮是为数不多白天活动的猫头鹰，也是《哈利·波特》中海德薇的原型。',
+   desc:'通体雪白的羽毛让它们在北极苔原上几乎隐于天地，明亮的黄色双眼锐利而警觉。它们以旅鼠等小型哺乳动物为食。',
+   facts:[['食性','旅鼠、鼠类、小型鸟类'],['习性','白天活动，领地性强'],['保护等级','IUCN 易危（VU）']]},
+  {id:'dolphin', name:'宽吻海豚', latin:'Tursiops truncatus', hab:'海洋',
+   fact:'海豚通过回声定位在海洋中导航与捕食，大脑发达，被认为是最聪明的动物之一。',
+   desc:'流线型的身体让它们能以极高的速度穿行于海浪之间，是群居而富有情感的海洋生灵，常以跃出水面的姿态与同伴交流。',
+   facts:[['食性','鱼类、鱿鱼等'],['习性','群居，用回声定位导航'],['保护等级','IUCN 无危（LC）']]}
+];
+
+const HABS = [
+  {name:'草原', color:'#e8b04b', desc:'辽阔的稀树草原上，掠食者与猎物的博弈日夜上演。', svg:'<path d="M2 18l5-8 3 4 2-5 4 7 2-3 4 5z"/>'},
+  {name:'山林', color:'#4c7a4f', desc:'云雾与密林之间，藏匿着温顺与机敏并存的生灵。', svg:'<path d="M3 19l6-10 4 6 2-4 6 8z"/>'},
+  {name:'丛林', color:'#2f6f8f', desc:'热带雨林层层叠叠，是地球上生物最密集的角落。', svg:'<path d="M12 3l3 6 5-2-2 6 4 3-7 1-2 4-2-4-7-1 4-3-2-6 5 2z"/>'},
+  {name:'极地', color:'#9db9c6', desc:'冰封的天地里，生命以另一种坚忍的方式延续。', svg:'<path d="M12 3l3 5-3 5-3-5z M6 16h12l-2 5H8z"/>'},
+  {name:'海洋', color:'#2f6f8f', desc:'占地球七成面积的蓝，容纳着无数跃动的生命。', svg:'<path d="M2 14c2-2 4-2 5 0s4 2 5 0 4-2 5 0v5H2z"/>'}
+];
+
+/* ===== 筛选（显隐切换） ===== */
+document.getElementById('filters').addEventListener('click', e => {
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  chip.classList.add('on');
+  const hab = chip.dataset.hab;
+  document.querySelectorAll('#cards .card').forEach(card => {
+    card.style.display = (hab === '全部' || card.dataset.hab === hab) ? '' : 'none';
+  });
+});
+
+/* ===== 弹窗 ===== */
+const modal = document.getElementById('modal');
+function openModal(id){
+  const a = ANIMALS.find(x => x.id === id); if(!a) return;
+  const cardImg = document.querySelector('#cards .card[data-id="' + id + '"] img');
+  if(cardImg){ document.getElementById('mImg').src = cardImg.src; document.getElementById('mImg').alt = a.name; }
+  document.getElementById('mLatin').textContent = a.latin;
+  document.getElementById('mName').textContent = a.name;
+  document.getElementById('mDesc').textContent = a.desc;
+  document.getElementById('mFacts').innerHTML = a.facts.map(f =>
+    `<div class="row"><b>${f[0]}</b><span>${f[1]}</span></div>`).join('');
+  modal.classList.add('open');
+}
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-id]');
+  if(btn) openModal(btn.dataset.id);
+});
+document.getElementById('modalClose').addEventListener('click', () => modal.classList.remove('open'));
+modal.addEventListener('click', e => { if(e.target === modal) modal.classList.remove('open'); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') modal.classList.remove('open'); });
+
+/* ===== 栖息地卡片 ===== */
+document.getElementById('habGrid').innerHTML = HABS.map((h,i) => `
+  <div class="hab">
+    <div class="ico" style="background:${h.color}22;color:${h.color}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">${h.svg}</svg>
+    </div>
+    <h3>${h.name}</h3>
+    <p>${h.desc}</p>
+    <div class="cnt">HABITAT · 0${i+1}</div>
+  </div>`).join('');
+
+/* ===== 移动端菜单 ===== */
+document.getElementById('menuBtn').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+/* ===== ECharts 物种构成 ===== */
+const chart = echarts.init(document.getElementById('speciesChart'));
+chart.setOption({
+  tooltip:{trigger:'item', formatter:'{b}<br/>{c} 种 · {d}%'},
+  legend:{bottom:0, textStyle:{color:'#3d4f46', fontSize:12}},
+  series:[{
+    type:'pie', radius:['38%','68%'], center:['50%','46%'],
+    avoidLabelOverlap:true, itemStyle:{borderRadius:6, borderColor:'#fffdf6', borderWidth:2},
+    label:{color:'#1e2a24', fontSize:12},
+    labelLine:{length:12, length2:8},
+    data:[
+      {value:1000000, name:'昆虫', itemStyle:{color:'#e8b04b'}},
+      {value:34000,  name:'鱼类', itemStyle:{color:'#2f6f8f'}},
+      {value:11000,  name:'鸟类', itemStyle:{color:'#4c7a4f'}},
+      {value:12000,  name:'爬行类', itemStyle:{color:'#b9852e'}},
+      {value:6400,   name:'哺乳类', itemStyle:{color:'#7a8b6f'}},
+      {value:8500,   name:'两栖类', itemStyle:{color:'#9db9c6'}}
+    ]
+  }]
+});
+window.addEventListener('resize', () => chart.resize());
+</script>
+</body>
+</html>
